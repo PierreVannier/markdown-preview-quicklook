@@ -1,0 +1,48 @@
+name: MarkdownPreview
+options:
+  bundleIdPrefix: local.pierrevannier
+  deploymentTarget:
+    macOS: "14.0"
+  createIntermediateGroups: true
+settings:
+  base:
+    CLANG_ANALYZER_LOCALIZABILITY_NONLOCALIZED: YES
+    CODE_SIGN_IDENTITY: "-"
+    CODE_SIGN_STYLE: Manual
+    DEVELOPMENT_TEAM: ""
+    MACOSX_DEPLOYMENT_TARGET: "14.0"
+    SDK_STAT_CACHE_ENABLE: NO
+    SWIFT_VERSION: "6.0"
+targets:
+  Markdown Preview:
+    type: application
+    platform: macOS
+    sources:
+      - MarkdownPreviewApp
+    dependencies:
+      - target: Markdown Preview Extension
+        embed: true
+    settings:
+      base:
+        CODE_SIGN_ENTITLEMENTS: MarkdownPreviewApp/MarkdownPreview.entitlements
+        INFOPLIST_FILE: MarkdownPreviewApp/Info.plist
+        PRODUCT_BUNDLE_IDENTIFIER: local.pierrevannier.MarkdownPreview
+        PRODUCT_NAME: Markdown Preview
+  Markdown Preview Extension:
+    type: app-extension
+    platform: macOS
+    sources:
+      - MarkdownPreviewExtension
+    settings:
+      base:
+        APPLICATION_EXTENSION_API_ONLY: YES
+        CODE_SIGN_ENTITLEMENTS: MarkdownPreviewExtension/MarkdownPreviewExtension.entitlements
+        INFOPLIST_FILE: MarkdownPreviewExtension/Info.plist
+        PRODUCT_BUNDLE_IDENTIFIER: local.pierrevannier.MarkdownPreview.Extension
+        PRODUCT_MODULE_NAME: MarkdownPreviewExtension
+        PRODUCT_NAME: Markdown Preview Extension
+schemes:
+  Markdown Preview:
+    build:
+      targets:
+        Markdown Preview: all
