@@ -39,6 +39,24 @@ The installer builds the app, installs it to:
 
 It also registers the Quick Look extension, resets Quick Look caches, and sets Markdown Preview as the Finder/Quick Look viewer for Markdown content types. Editor handlers are left intact.
 
+## Release Package
+
+Build a native macOS installer package:
+
+```sh
+./scripts/package.sh
+```
+
+The package is written to:
+
+```text
+release/MarkdownPreview-1.0.pkg
+```
+
+Double-click the `.pkg` to install. It copies the app to `~/Applications/Markdown Preview.app`, registers the Quick Look extension, resets Quick Look caches, and sets Markdown Preview as the Viewer handler for Markdown files.
+
+The locally generated package is unsigned. For public binary releases, sign and notarize the `.pkg` with an Apple Developer ID Installer certificate.
+
 ## Use
 
 In Finder:
