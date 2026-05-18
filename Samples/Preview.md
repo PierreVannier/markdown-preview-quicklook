@@ -9,6 +9,7 @@ This is a quick smoke-test file for **Finder Quick Look** rendering. It includes
 - No external rendering service
 
 > Good previews should feel like a clean document, not raw source text.
+> Open Markdown Preview.app to switch between System, Light, and Dark themes.
 
 | Feature | Status |
 | --- | ---: |

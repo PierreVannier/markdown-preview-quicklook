@@ -8,9 +8,10 @@ final class PreviewProvider: QLPreviewProvider, QLPreviewingController {
     private let logger = Logger(subsystem: "local.pierrevannier.MarkdownPreview", category: "Preview")
 
     func providePreview(for request: QLFilePreviewRequest) async throws -> QLPreviewReply {
-        logger.info("Rendering Markdown preview")
+        let theme = ThemePreferences.current
+        logger.info("Rendering Markdown preview using \(theme.rawValue, privacy: .public) theme")
 
-        let html = MarkdownHTMLRenderer.renderFile(at: request.fileURL)
+        let html = MarkdownHTMLRenderer.renderFile(at: request.fileURL, theme: theme)
         let data = Data(html.utf8)
 
         return QLPreviewReply(dataOfContentType: .html, contentSize: CGSize(width: 920, height: 1180)) { reply in
@@ -21,22 +22,24 @@ final class PreviewProvider: QLPreviewProvider, QLPreviewingController {
 }
 
 private enum MarkdownHTMLRenderer {
-    static func renderFile(at url: URL) -> String {
+    static func renderFile(at url: URL, theme: PreviewTheme) -> String {
         let data = (try? Data(contentsOf: url)) ?? Data()
         let markdown = decode(data)
         let fileName = escapeHTML(url.lastPathComponent)
         let content = render(markdown)
+        let themeClass = escapeHTML(theme.htmlClass)
 
         return """
         <!doctype html>
-        <html lang="en">
+        <html lang="en" class="\(themeClass)">
         <head>
         <meta charset="utf-8">
         <meta name="viewport" content="width=device-width, initial-scale=1">
         <title>\(fileName)</title>
         <style>
-        :root {
-          color-scheme: light dark;
+        :root,
+        :root.theme-light {
+          color-scheme: light;
           --bg: #f5f7f8;
           --paper: #ffffff;
           --text: #17202a;
@@ -52,8 +55,30 @@ private enum MarkdownHTMLRenderer {
           --quote-bg: #f1f7f5;
         }
 
+        :root.theme-system {
+          color-scheme: light dark;
+        }
+
+        :root.theme-dark {
+          color-scheme: dark;
+          --bg: #111417;
+          --paper: #1b2025;
+          --text: #e7ecef;
+          --muted: #a6b0b9;
+          --subtle: #303941;
+          --accent: #66c7b8;
+          --accent-strong: #89d8cc;
+          --inline-code-bg: #253330;
+          --inline-code-text: #a8eee2;
+          --code-bg: #090d12;
+          --code-text: #e7f1ee;
+          --table-stripe: #20272d;
+          --quote-bg: #202b29;
+        }
+
         @media (prefers-color-scheme: dark) {
-          :root {
+          :root.theme-system {
+            color-scheme: dark;
             --bg: #111417;
             --paper: #1b2025;
             --text: #e7ecef;

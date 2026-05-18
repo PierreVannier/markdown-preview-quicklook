@@ -8,6 +8,7 @@ It renders `.md` files as styled HTML in Finder's Quick Look panel instead of sh
 
 - Finder Quick Look preview for Markdown files.
 - Polished light and dark mode styling.
+- Theme selector: System, Light, or Dark.
 - Local rendering only: no network calls and no external runtime services.
 - Supports headings, emphasis, links, inline code, fenced code blocks, block quotes, lists, thematic breaks, and tables.
 - Handles common Markdown UTIs, including TeXShop's `com.unknown.md`, without changing your editor association.
@@ -44,6 +45,14 @@ In Finder:
 
 - Select a `.md` file and press Space.
 - Or enable the preview pane with `View > Show Preview`.
+
+To choose the preview theme, open:
+
+```text
+~/Applications/Markdown Preview.app
+```
+
+Select `System`, `Light`, or `Dark`. Existing Quick Look windows may need to be closed and reopened before they pick up the new theme.
 
 ## Uninstall
 

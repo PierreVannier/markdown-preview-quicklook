@@ -19,6 +19,7 @@ targets:
     platform: macOS
     sources:
       - MarkdownPreviewApp
+      - MarkdownPreviewShared
     dependencies:
       - target: Markdown Preview Extension
         embed: true
@@ -33,6 +34,7 @@ targets:
     platform: macOS
     sources:
       - MarkdownPreviewExtension
+      - MarkdownPreviewShared
     settings:
       base:
         APPLICATION_EXTENSION_API_ONLY: YES
