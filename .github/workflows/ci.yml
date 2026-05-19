@@ -31,6 +31,7 @@ jobs:
           bash -n scripts/release.sh
           bash -n scripts/notarize.sh
           bash -n scripts/uninstall.sh
+          bash -n scripts/diagnose.sh
 
       - name: Build package
         run: ./scripts/package.sh
