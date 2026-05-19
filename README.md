@@ -1,5 +1,7 @@
 # Markdown Preview
 
+[![CI](https://github.com/PierreVannier/markdown-preview-quicklook/actions/workflows/ci.yml/badge.svg)](https://github.com/PierreVannier/markdown-preview-quicklook/actions/workflows/ci.yml)
+
 Native macOS Quick Look preview extension for Markdown files.
 
 It renders `.md` files as styled HTML in Finder's Quick Look panel instead of showing raw plain text.
