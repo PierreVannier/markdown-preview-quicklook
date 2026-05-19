@@ -149,6 +149,9 @@ Select `System`, `Light`, or `Dark`. Existing Quick Look windows may need to be 
 ./scripts/uninstall.sh
 ```
 
+The uninstall script removes `~/Applications/Markdown Preview.app`, unregisters the Quick Look extension, clears the app's local settings and caches, resets Quick Look, and restarts Finder.
+If the `.pkg` receipt was installed system-wide, the script will also try to forget it and will print the `sudo pkgutil --forget ...` command if macOS requires elevated permissions.
+
 ## Troubleshooting
 
 If Finder still shows a plain-text preview after installing:
