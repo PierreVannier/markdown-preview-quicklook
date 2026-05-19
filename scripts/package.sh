@@ -11,6 +11,9 @@ PAYLOAD_DIR="$PKG_ROOT/private/tmp/markdown-preview-quicklook"
 RELEASE_DIR="$ROOT_DIR/release"
 VERSION="$(/usr/libexec/PlistBuddy -c 'Print :CFBundleShortVersionString' "$ROOT_DIR/MarkdownPreviewApp/Info.plist")"
 PKG_PATH="$RELEASE_DIR/MarkdownPreview-$VERSION.pkg"
+CODE_SIGN_IDENTITY_VALUE="${CODE_SIGN_IDENTITY:-"-"}"
+DEVELOPMENT_TEAM_VALUE="${DEVELOPMENT_TEAM:-""}"
+ENABLE_HARDENED_RUNTIME_VALUE="${ENABLE_HARDENED_RUNTIME:-"NO"}"
 
 cd "$ROOT_DIR"
 
@@ -28,9 +31,11 @@ xcodebuild \
   -scheme "Markdown Preview" \
   -configuration Release \
   -derivedDataPath "$DERIVED_DATA" \
-  CODE_SIGN_IDENTITY="-" \
+  CODE_SIGN_IDENTITY="$CODE_SIGN_IDENTITY_VALUE" \
+  CODE_SIGN_INJECT_BASE_ENTITLEMENTS=NO \
   CODE_SIGN_STYLE=Manual \
-  DEVELOPMENT_TEAM="" \
+  DEVELOPMENT_TEAM="$DEVELOPMENT_TEAM_VALUE" \
+  ENABLE_HARDENED_RUNTIME="$ENABLE_HARDENED_RUNTIME_VALUE" \
   SDK_STAT_CACHE_ENABLE=NO \
   build
 
