@@ -18,7 +18,7 @@ ENABLE_HARDENED_RUNTIME_VALUE="${ENABLE_HARDENED_RUNTIME:-"NO"}"
 cd "$ROOT_DIR"
 
 if ! command -v xcodegen >/dev/null 2>&1; then
-  echo "xcodegen is required. Install it with: brew install xcodegen" >&2
+  echo "xcodegen is required. Install XcodeGen and make sure it is available on PATH." >&2
   exit 1
 fi
 

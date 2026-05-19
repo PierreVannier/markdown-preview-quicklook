@@ -53,11 +53,7 @@ Current public packages are unsigned unless a release explicitly says it is sign
 
 ## Build From Source
 
-Install [XcodeGen](https://github.com/yonaskolb/XcodeGen):
-
-```sh
-brew install xcodegen
-```
+Install [XcodeGen](https://github.com/yonaskolb/XcodeGen) with your preferred package manager and make sure `xcodegen` is available on your `PATH`.
 
 Then build and install locally:
 
