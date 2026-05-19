@@ -166,6 +166,12 @@ killall Finder
 
 Then select the Markdown file again and press Space.
 
+To collect local diagnostics for an issue:
+
+```sh
+./scripts/diagnose.sh
+```
+
 If TeXShop takes over Markdown previews, run the installer again. TeXShop registers `.md` as `com.unknown.md`; the installer explicitly sets Markdown Preview as the Viewer handler for that type while leaving TeXShop as the Editor.
 
 ## Development
