@@ -14,8 +14,15 @@ It renders `.md` files as styled HTML in Finder's Quick Look panel instead of sh
 - Polished light and dark mode styling.
 - Theme selector: System, Light, or Dark.
 - Local rendering only: no network calls and no external runtime services.
-- Supports headings, emphasis, links, inline code, fenced code blocks, block quotes, lists, thematic breaks, and tables.
+- Supports headings, emphasis, links, inline code, fenced code blocks, block quotes, lists, task lists, thematic breaks, tables, and local images.
 - Handles common Markdown UTIs, including TeXShop's `com.unknown.md`, without changing your editor association.
+
+## Security Model
+
+- Rendered previews use a restrictive Content Security Policy.
+- Remote images are not loaded; Markdown images must point to local files or `data:image/...` URLs.
+- Links are only rendered for `http`, `https`, `mailto`, and `file` URLs.
+- Very large Markdown files are skipped instead of being rendered inside Quick Look.
 
 ## Requirements
 

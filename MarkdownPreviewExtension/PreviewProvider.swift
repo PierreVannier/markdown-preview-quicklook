@@ -22,12 +22,21 @@ final class PreviewProvider: QLPreviewProvider, QLPreviewingController {
 }
 
 private enum MarkdownHTMLRenderer {
+    private static let maxPreviewBytes = 4 * 1024 * 1024
+    private static let allowedImageExtensions = Set(["png", "jpg", "jpeg", "gif", "webp", "heic", "heif", "tif", "tiff"])
+
     static func renderFile(at url: URL, theme: PreviewTheme) -> String {
-        let data = (try? Data(contentsOf: url)) ?? Data()
-        let markdown = decode(data)
+        let content: String
         let fileName = escapeHTML(url.lastPathComponent)
-        let content = render(markdown, baseURL: url.deletingLastPathComponent())
         let themeClass = escapeHTML(theme.htmlClass)
+
+        if fileSize(at: url).map({ $0 > maxPreviewBytes }) == true {
+            content = renderOversizedFileWarning(fileName: fileName)
+        } else {
+            let data = (try? Data(contentsOf: url)) ?? Data()
+            let markdown = decode(data)
+            content = render(markdown, baseURL: url.deletingLastPathComponent())
+        }
 
         return """
         <!doctype html>
@@ -35,6 +44,7 @@ private enum MarkdownHTMLRenderer {
         <head>
         <meta charset="utf-8">
         <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta http-equiv="Content-Security-Policy" content="default-src 'none'; img-src file: data:; style-src 'unsafe-inline'; script-src 'none'; object-src 'none'; base-uri 'none'; form-action 'none'; connect-src 'none'">
         <title>\(fileName)</title>
         <style>
         :root,
@@ -366,6 +376,22 @@ private enum MarkdownHTMLRenderer {
         }
     }
 
+    private static func fileSize(at url: URL) -> UInt64? {
+        guard let attributes = try? FileManager.default.attributesOfItem(atPath: url.path),
+              let size = attributes[.size] as? NSNumber else {
+            return nil
+        }
+
+        return size.uint64Value
+    }
+
+    private static func renderOversizedFileWarning(fileName: String) -> String {
+        let limit = maxPreviewBytes / (1024 * 1024)
+        return """
+        <p class="empty">\(fileName) is larger than \(limit) MB, so Markdown Preview skipped rendering it.</p>
+        """
+    }
+
     private static func decode(_ data: Data) -> String {
         if let string = String(data: data, encoding: .utf8) {
             return string
@@ -520,7 +546,7 @@ private enum MarkdownHTMLRenderer {
 
         if let url = URL(string: trimmed), let scheme = url.scheme?.lowercased() {
             if scheme == "file" {
-                return url.absoluteString
+                return allowedImageExtensions.contains(url.pathExtension.lowercased()) ? url.absoluteString : nil
             }
             if scheme == "data", trimmed.lowercased().hasPrefix("data:image/") {
                 return trimmed
@@ -528,7 +554,12 @@ private enum MarkdownHTMLRenderer {
             return nil
         }
 
-        return URL(fileURLWithPath: trimmed, relativeTo: baseURL).standardizedFileURL.absoluteString
+        let url = URL(fileURLWithPath: trimmed, relativeTo: baseURL).standardizedFileURL
+        guard allowedImageExtensions.contains(url.pathExtension.lowercased()) else {
+            return nil
+        }
+
+        return url.absoluteString
     }
 
     private static func taskListStateAndContent(from fragments: [Fragment]) -> (TaskListState?, [Fragment]) {
@@ -659,11 +690,28 @@ private enum MarkdownHTMLRenderer {
         }
 
         if let link = fragment.link {
-            let href = escapeHTML(link.absoluteString)
+            guard let safeLink = safeLink(link) else {
+                return html
+            }
+
+            let href = escapeHTML(safeLink)
             html = #"<a href="\#(href)" rel="noreferrer">\#(html)</a>"#
         }
 
         return html
+    }
+
+    private static func safeLink(_ url: URL) -> String? {
+        guard let scheme = url.scheme?.lowercased() else {
+            return nil
+        }
+
+        switch scheme {
+        case "http", "https", "mailto", "file":
+            return url.absoluteString
+        default:
+            return nil
+        }
     }
 
     private static func escapeHTML(_ value: String) -> String {
