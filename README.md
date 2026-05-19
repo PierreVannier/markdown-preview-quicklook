@@ -29,28 +29,43 @@ It renders `.md` files as styled HTML in Finder's Quick Look panel instead of sh
 ## Requirements
 
 - macOS 14 or later.
-- Xcode or Xcode command line tools with `xcodebuild`.
-- [XcodeGen](https://github.com/yonaskolb/XcodeGen):
-
-```sh
-brew install xcodegen
-```
+- Xcode and XcodeGen are only required when building from source.
 
 ## Install
 
-```sh
-git clone https://github.com/PierreVannier/markdown-preview-quicklook.git
-cd markdown-preview-quicklook
-./scripts/install.sh
-```
+Download the latest `.pkg` from the [GitHub Releases](https://github.com/PierreVannier/markdown-preview-quicklook/releases) page, then double-click it.
 
-The installer builds the app, installs it to:
+The package installs the app to:
 
 ```text
 ~/Applications/Markdown Preview.app
 ```
 
 It also registers the Quick Look extension, resets Quick Look caches, and sets Markdown Preview as the Finder/Quick Look viewer for Markdown content types. Editor handlers are left intact.
+
+To verify the downloaded package checksum:
+
+```sh
+shasum -a 256 -c MarkdownPreview-1.0.pkg.sha256
+```
+
+Current public packages are unsigned unless a release explicitly says it is signed and notarized. macOS may show a security warning for unsigned packages; if you prefer not to install an unsigned package, build from source.
+
+## Build From Source
+
+Install [XcodeGen](https://github.com/yonaskolb/XcodeGen):
+
+```sh
+brew install xcodegen
+```
+
+Then build and install locally:
+
+```sh
+git clone https://github.com/PierreVannier/markdown-preview-quicklook.git
+cd markdown-preview-quicklook
+./scripts/install.sh
+```
 
 ## Release Package
 
