@@ -58,14 +58,26 @@ Native macOS Quick Look previews for Markdown files.
 
 ## Install
 
-1. Download \`MarkdownPreview-$VERSION.pkg\`.
-2. Double-click the package.
-3. In Finder, select a Markdown file and press Space.
+1. Download \`MarkdownPreview-$VERSION.pkg\` and \`MarkdownPreview-$VERSION.pkg.sha256\`.
+2. Verify the package checksum.
+3. Open the package. If macOS blocks the unsigned package, remove the quarantine flag first.
+4. In Finder, select a Markdown file and press Space.
 
 ## Verify
 
 \`\`\`sh
 shasum -a 256 -c MarkdownPreview-$VERSION.pkg.sha256
+\`\`\`
+
+## Unsigned Package Warning
+
+This package is unsigned unless the release explicitly says it is signed and notarized. macOS may show a warning that Apple cannot check it for malicious software.
+
+After verifying the checksum, install the unsigned package with:
+
+\`\`\`sh
+xattr -dr com.apple.quarantine MarkdownPreview-$VERSION.pkg
+open MarkdownPreview-$VERSION.pkg
 \`\`\`
 
 ## Notes
