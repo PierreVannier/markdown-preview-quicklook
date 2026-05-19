@@ -33,7 +33,7 @@ It renders `.md` files as styled HTML in Finder's Quick Look panel instead of sh
 
 ## Install
 
-Download the latest `.pkg` from the [GitHub Releases](https://github.com/PierreVannier/markdown-preview-quicklook/releases) page, then double-click it.
+Download the latest `.pkg` and `.pkg.sha256` from the [GitHub Releases](https://github.com/PierreVannier/markdown-preview-quicklook/releases) page.
 
 The package installs the app to:
 
@@ -49,7 +49,14 @@ To verify the downloaded package checksum:
 shasum -a 256 -c MarkdownPreview-1.0.pkg.sha256
 ```
 
-Current public packages are unsigned unless a release explicitly says it is signed and notarized. macOS may show a security warning for unsigned packages; if you prefer not to install an unsigned package, build from source.
+Current public packages are unsigned unless a release explicitly says it is signed and notarized. macOS may block unsigned packages downloaded from the internet. After verifying the checksum, you can remove the quarantine flag and open the package:
+
+```sh
+xattr -dr com.apple.quarantine MarkdownPreview-1.0.pkg
+open MarkdownPreview-1.0.pkg
+```
+
+If you prefer not to install an unsigned package, build from source.
 
 ## Build From Source
 
