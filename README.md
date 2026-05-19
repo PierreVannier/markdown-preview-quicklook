@@ -61,6 +61,34 @@ Double-click the `.pkg` to install. It copies the app to `~/Applications/Markdow
 
 The locally generated package is unsigned. For public binary releases, sign and notarize the `.pkg` with an Apple Developer ID Installer certificate.
 
+## GitHub Release
+
+Prepare release assets with a package, checksum, and release notes:
+
+```sh
+./scripts/release.sh
+```
+
+This writes:
+
+```text
+release/MarkdownPreview-1.0.pkg
+release/MarkdownPreview-1.0.pkg.sha256
+release/MarkdownPreview-1.0-release-notes.md
+```
+
+Create a draft GitHub release:
+
+```sh
+./scripts/release.sh --draft
+```
+
+Publish directly:
+
+```sh
+./scripts/release.sh --publish
+```
+
 ## Use
 
 In Finder:
