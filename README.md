@@ -112,6 +112,15 @@ Publish directly:
 ./scripts/release.sh --publish
 ```
 
+Tagged releases are also automated by GitHub Actions. Push a tag like:
+
+```sh
+git tag v1.0
+git push origin v1.0
+```
+
+The workflow builds the package, uploads build artifacts, and publishes a GitHub Release for the tag.
+
 ## Use
 
 In Finder:
