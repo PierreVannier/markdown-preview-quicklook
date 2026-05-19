@@ -26,7 +26,7 @@ private enum MarkdownHTMLRenderer {
         let data = (try? Data(contentsOf: url)) ?? Data()
         let markdown = decode(data)
         let fileName = escapeHTML(url.lastPathComponent)
-        let content = render(markdown)
+        let content = render(markdown, baseURL: url.deletingLastPathComponent())
         let themeClass = escapeHTML(theme.htmlClass)
 
         return """
@@ -214,6 +214,23 @@ private enum MarkdownHTMLRenderer {
           border-radius: 0 8px 8px 0;
         }
         blockquote > :last-child { margin-bottom: 0; }
+        figure {
+          margin: 1.4em 0;
+        }
+        figure img {
+          display: block;
+          max-width: 100%;
+          max-height: 720px;
+          border: 1px solid var(--subtle);
+          border-radius: 10px;
+          background: var(--paper);
+        }
+        figcaption {
+          margin-top: 0.55em;
+          color: var(--muted);
+          font-size: 0.9em;
+          text-align: center;
+        }
         .list-item {
           --depth: 0;
           display: grid;
@@ -226,6 +243,30 @@ private enum MarkdownHTMLRenderer {
           font-weight: 720;
           text-align: right;
           user-select: none;
+        }
+        .task-marker {
+          display: flex;
+          justify-content: flex-end;
+          padding-top: 0.3em;
+        }
+        .task-checkbox {
+          display: inline-grid;
+          width: 1.05em;
+          height: 1.05em;
+          place-items: center;
+          border: 1.5px solid var(--accent);
+          border-radius: 4px;
+          color: var(--paper);
+          background: transparent;
+          font-size: 0.78em;
+          line-height: 1;
+        }
+        .task-checkbox.checked {
+          background: var(--accent);
+        }
+        .task-checkbox.checked::after {
+          content: "\\2713";
+          font-weight: 800;
         }
         .li-content > :last-child { margin-bottom: 0; }
         table {
@@ -282,11 +323,31 @@ private enum MarkdownHTMLRenderer {
         """
     }
 
-    private static func render(_ markdown: String) -> String {
+    private static func render(_ markdown: String, baseURL: URL) -> String {
         guard !markdown.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else {
             return #"<p class="empty">This Markdown file is empty.</p>"#
         }
 
+        let segments = markdownSegments(from: markdown)
+        if segments.count > 1 || segments.contains(where: \.isImage) {
+            let html = segments.map { segment in
+                switch segment {
+                case .markdown(let markdown):
+                    return renderMarkdown(markdown)
+                case .image(let image):
+                    return renderImage(image, baseURL: baseURL)
+                }
+            }
+            .filter { !$0.isEmpty }
+            .joined(separator: "\n")
+
+            return html.isEmpty ? #"<p class="empty">This Markdown file is empty.</p>"# : html
+        }
+
+        return renderMarkdown(markdown)
+    }
+
+    private static func renderMarkdown(_ markdown: String) -> String {
         do {
             let options = AttributedString.MarkdownParsingOptions(
                 interpretedSyntax: .full,
@@ -373,7 +434,8 @@ private enum MarkdownHTMLRenderer {
             return renderCodeBlock(fragments.map(\.text).joined(), language: language)
         }
 
-        let body = fragments.map(renderInline).joined()
+        let (taskState, contentFragments) = taskListStateAndContent(from: fragments)
+        let body = contentFragments.map(renderInline).joined()
         let rendered: String
 
         if let level = metadata.headingLevel {
@@ -381,7 +443,7 @@ private enum MarkdownHTMLRenderer {
             rendered = "<\(tag)>\(body)</\(tag)>"
         } else if let marker = metadata.listMarker {
             let depth = max(metadata.indentationLevel - 1, 0)
-            let markerHTML = metadata.isUnorderedList ? "&bull;" : escapeHTML(marker)
+            let markerHTML = taskState.map(renderTaskMarker) ?? (metadata.isUnorderedList ? "&bull;" : escapeHTML(marker))
             rendered = """
             <div class="list-item" style="--depth: \(depth);">
               <span class="marker">\(markerHTML)</span>
@@ -397,6 +459,113 @@ private enum MarkdownHTMLRenderer {
         }
 
         return rendered
+    }
+
+    private static func markdownSegments(from markdown: String) -> [MarkdownSegment] {
+        var segments: [MarkdownSegment] = []
+        var markdownLines: [String] = []
+        var isInsideFence = false
+
+        func flushMarkdownLines() {
+            let block = markdownLines.joined(separator: "\n")
+            if !block.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
+                segments.append(.markdown(block))
+            }
+            markdownLines.removeAll()
+        }
+
+        for line in markdown.components(separatedBy: .newlines) {
+            let trimmed = line.trimmingCharacters(in: .whitespaces)
+
+            if !isInsideFence, let image = MarkdownImage(line: line) {
+                flushMarkdownLines()
+                segments.append(.image(image))
+                continue
+            }
+
+            markdownLines.append(line)
+
+            if trimmed.hasPrefix("```") || trimmed.hasPrefix("~~~") {
+                isInsideFence.toggle()
+            }
+        }
+
+        flushMarkdownLines()
+        return segments
+    }
+
+    private static func renderImage(_ image: MarkdownImage, baseURL: URL) -> String {
+        let alt = escapeHTML(image.alt)
+        let caption = alt.isEmpty ? "" : "<figcaption>\(alt)</figcaption>"
+
+        guard let source = imageSource(for: image.destination, baseURL: baseURL) else {
+            return """
+            <figure>
+              <p><em>\(alt.isEmpty ? "Image preview unavailable." : alt)</em></p>
+            </figure>
+            """
+        }
+
+        return """
+        <figure>
+          <img src="\(escapeHTML(source))" alt="\(alt)">
+          \(caption)
+        </figure>
+        """
+    }
+
+    private static func imageSource(for destination: String, baseURL: URL) -> String? {
+        let trimmed = destination.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !trimmed.isEmpty else { return nil }
+
+        if let url = URL(string: trimmed), let scheme = url.scheme?.lowercased() {
+            if scheme == "file" {
+                return url.absoluteString
+            }
+            if scheme == "data", trimmed.lowercased().hasPrefix("data:image/") {
+                return trimmed
+            }
+            return nil
+        }
+
+        return URL(fileURLWithPath: trimmed, relativeTo: baseURL).standardizedFileURL.absoluteString
+    }
+
+    private static func taskListStateAndContent(from fragments: [Fragment]) -> (TaskListState?, [Fragment]) {
+        guard var first = fragments.first else {
+            return (nil, fragments)
+        }
+
+        let leadingWhitespace = first.text.prefix { $0 == " " || $0 == "\t" }
+        let rest = first.text.dropFirst(leadingWhitespace.count)
+        let states: [(String, TaskListState)] = [
+            ("[ ] ", .unchecked),
+            ("[x] ", .checked),
+            ("[X] ", .checked)
+        ]
+
+        for (prefix, state) in states where rest.hasPrefix(prefix) {
+            let replacement = String(rest.dropFirst(prefix.count))
+            first = Fragment(
+                text: replacement,
+                presentationIntent: first.presentationIntent,
+                inlineIntent: first.inlineIntent,
+                link: first.link
+            )
+
+            var updated = Array(fragments.dropFirst())
+            if !first.text.isEmpty {
+                updated.insert(first, at: 0)
+            }
+            return (state, updated)
+        }
+
+        return (nil, fragments)
+    }
+
+    private static func renderTaskMarker(_ state: TaskListState) -> String {
+        let stateClass = state == .checked ? " checked" : ""
+        return #"<span class="task-marker"><span class="task-checkbox\#(stateClass)"></span></span>"#
     }
 
     private static func renderTable(_ fragments: [Fragment]) -> String {
@@ -491,7 +660,7 @@ private enum MarkdownHTMLRenderer {
 
         if let link = fragment.link {
             let href = escapeHTML(link.absoluteString)
-            html = #"<a href="\#(href)">\#(html)</a>"#
+            html = #"<a href="\#(href)" rel="noreferrer">\#(html)</a>"#
         }
 
         return html
@@ -520,6 +689,66 @@ private enum MarkdownHTMLRenderer {
 
         return escaped
     }
+}
+
+private enum MarkdownSegment {
+    case markdown(String)
+    case image(MarkdownImage)
+
+    var isImage: Bool {
+        if case .image = self {
+            return true
+        }
+        return false
+    }
+}
+
+private struct MarkdownImage {
+    let alt: String
+    let destination: String
+
+    init?(line: String) {
+        let trimmed = line.trimmingCharacters(in: .whitespaces)
+        guard trimmed.hasPrefix("!["),
+              trimmed.hasSuffix(")") else {
+            return nil
+        }
+
+        let afterOpening = trimmed.dropFirst(2)
+        guard let separator = afterOpening.range(of: "](") else {
+            return nil
+        }
+
+        alt = String(afterOpening[..<separator.lowerBound])
+
+        let destinationAndTitle = afterOpening[separator.upperBound..<trimmed.index(before: trimmed.endIndex)]
+        guard let parsedDestination = Self.destination(from: String(destinationAndTitle)) else {
+            return nil
+        }
+
+        destination = parsedDestination
+    }
+
+    private static func destination(from value: String) -> String? {
+        let trimmed = value.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !trimmed.isEmpty else { return nil }
+
+        if trimmed.hasPrefix("<"), let closingBracket = trimmed.firstIndex(of: ">") {
+            let start = trimmed.index(after: trimmed.startIndex)
+            return String(trimmed[start..<closingBracket])
+        }
+
+        if let firstPart = trimmed.split(whereSeparator: { $0 == " " || $0 == "\t" }).first {
+            return String(firstPart)
+        }
+
+        return nil
+    }
+}
+
+private enum TaskListState {
+    case checked
+    case unchecked
 }
 
 private struct Fragment {

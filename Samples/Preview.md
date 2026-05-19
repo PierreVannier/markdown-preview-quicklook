@@ -8,14 +8,22 @@ This is a quick smoke-test file for **Finder Quick Look** rendering. It includes
 - No browser extension or background process
 - No external rendering service
 
+- [x] Render styled Markdown
+- [x] Support Finder Quick Look
+- [ ] Ship signed release packages
+
 > Good previews should feel like a clean document, not raw source text.
 > Open Markdown Preview.app to switch between System, Light, and Dark themes.
+
+![Markdown Preview poster](../assets/markdown-preview-poster.png)
 
 | Feature | Status |
 | --- | ---: |
 | Headings | Ready |
 | Tables | Ready |
 | Code blocks | Ready |
+| Task lists | Ready |
+| Local images | Ready |
 
 ```swift
 struct Preview {
