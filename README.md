@@ -61,6 +61,29 @@ Double-click the `.pkg` to install. It copies the app to `~/Applications/Markdow
 
 The locally generated package is unsigned. For public binary releases, sign and notarize the `.pkg` with an Apple Developer ID Installer certificate.
 
+## Signed Release
+
+Create a notarized public package with Apple Developer ID certificates:
+
+```sh
+xcrun notarytool store-credentials "markdown-preview" \
+  --apple-id "you@example.com" \
+  --team-id "TEAMID" \
+  --password "app-specific-password"
+
+DEVELOPER_ID_APPLICATION="Developer ID Application: Name (TEAMID)" \
+DEVELOPER_ID_INSTALLER="Developer ID Installer: Name (TEAMID)" \
+NOTARYTOOL_PROFILE="markdown-preview" \
+./scripts/notarize.sh
+```
+
+This writes:
+
+```text
+release/MarkdownPreview-1.0-signed.pkg
+release/MarkdownPreview-1.0-signed.pkg.sha256
+```
+
 ## GitHub Release
 
 Prepare release assets with a package, checksum, and release notes:
