@@ -4,6 +4,10 @@ Native macOS Quick Look preview extension for Markdown files.
 
 It renders `.md` files as styled HTML in Finder's Quick Look panel instead of showing raw plain text.
 
+<p align="center">
+  <img src="assets/markdown-preview-poster.png" alt="Markdown Preview vintage poster" width="720">
+</p>
+
 ## Features
 
 - Finder Quick Look preview for Markdown files.
