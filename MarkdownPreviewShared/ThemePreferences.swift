@@ -40,6 +40,11 @@ enum ThemePreferences {
     static let extensionIdentifier = "local.pierrevannier.MarkdownPreview.Extension"
     static let key = "PreviewTheme"
 
+    static var preferenceFileURL: URL {
+        realHomeDirectory
+            .appendingPathComponent("Library/Application Support/Markdown Preview/theme.txt")
+    }
+
     static var current: PreviewTheme {
         get {
             if let rawValue = readSharedPreference(),
@@ -72,11 +77,6 @@ enum ThemePreferences {
         }
     }
 
-    private static var sharedPreferenceURL: URL {
-        realHomeDirectory
-            .appendingPathComponent("Library/Application Support/Markdown Preview/theme.txt")
-    }
-
     private static var realHomeDirectory: URL {
         if let passwordEntry = getpwuid(getuid()),
            let homeDirectory = passwordEntry.pointee.pw_dir {
@@ -87,7 +87,7 @@ enum ThemePreferences {
     }
 
     private static func readSharedPreference() -> String? {
-        guard let rawValue = try? String(contentsOf: sharedPreferenceURL, encoding: .utf8) else {
+        guard let rawValue = try? String(contentsOf: preferenceFileURL, encoding: .utf8) else {
             return nil
         }
 
@@ -95,7 +95,7 @@ enum ThemePreferences {
     }
 
     private static func writeSharedPreference(_ rawValue: String) {
-        let url = sharedPreferenceURL
+        let url = preferenceFileURL
 
         do {
             try FileManager.default.createDirectory(
